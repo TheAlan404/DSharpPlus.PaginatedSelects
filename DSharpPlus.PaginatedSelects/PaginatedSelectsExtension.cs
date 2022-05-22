@@ -66,8 +66,7 @@ namespace DSharpPlus.PaginatedSelects
 			string Format(string input, int p = 0)
 			{
 				if (p == 0) p = page;
-				return input.Replace("{id}", customId)
-					.Replace("{page}", p.ToString())
+				return input.Replace("{page}", p.ToString())
 					.Replace("{pagecount}", pageCount.ToString());
 			}
 		}
