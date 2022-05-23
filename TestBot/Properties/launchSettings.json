@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "TestBot": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "TOKEN": "Njg0MjU5NTYxODQ2MDc5NTI0.G4X0vL.IaUnAEs8XtzhWZmYPP9SNwtKXPF_bvr3vQT_k0"
+      },
+      "hotReloadEnabled": false
+    }
+  }
+}

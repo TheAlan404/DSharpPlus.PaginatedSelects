@@ -11,6 +11,7 @@ namespace DSharpPlus.PaginatedSelects
 			new DiscordSelectComponentOption("Previous Page", "_", "Go to the previous page", false, new DiscordComponentEmoji("⬅️"));
 		public string ValuePrefix = "#";
 		public string ValueSuffix = "";
-		public string Placeholder = "Select an option (page {page}/{pagecount})";
+		public string DefaultPlaceholder = "Select an option (page {page}/{pagecount})";
+		public bool AutoRemoveOptions = true;
 	}
 }

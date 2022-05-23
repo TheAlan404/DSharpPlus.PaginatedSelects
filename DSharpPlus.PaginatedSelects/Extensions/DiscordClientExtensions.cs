@@ -15,5 +15,7 @@ namespace DSharpPlus.PaginatedSelects
 			client.AddExtension(ext);
 			return ext;
 		}
+
+		public static PaginatedSelectsExtension GetPaginatedSelects(this DiscordClient client) => client.GetExtension<PaginatedSelectsExtension>();
 	}
 }
