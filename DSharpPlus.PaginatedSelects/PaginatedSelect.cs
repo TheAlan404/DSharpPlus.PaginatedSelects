@@ -1,28 +1,31 @@
 ﻿using DSharpPlus.Entities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DSharpPlus.PaginatedSelects
 {
 	public class PaginatedSelect
 	{
-		public static int OptionsPerPage => 23;
+		public static int OptionsPerPage => 20;
 
 		public string Placeholder;
 		public List<DiscordSelectComponentOption> Options = new();
 		public int PageCount => (int)Math.Ceiling((double)Options.Count / OptionsPerPage);
 
-		/*
-		public List<DiscordSelectComponentOption> GetPage(int page = 0)
+		/// <summary>
+		/// If set to true, will remove itself when user selects the option.
+		/// If set to false, will keep itself on the paginated selects list.
+		/// Defaults to the config value <see cref="PaginatedSelectsConfiguration.AutoRemoveSelects"/> if null.
+		/// </summary>
+		public bool? AutoRemoveSelect = null;
+
+		public Action<CustomRenderContext> CustomRender;
+
+		public PaginatedSelect() {}
+
+		public PaginatedSelect(List<DiscordSelectComponentOption> options)
 		{
-			var options = GetPageRaw(page);
-
+			Options = options;
 		}
-
-		public List<DiscordSelectComponentOption> GetPageRaw(int page)
-			=> Options.Skip(page * OptionsPerPage).Take(OptionsPerPage).ToList();*/
 	}
 }

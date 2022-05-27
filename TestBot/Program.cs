@@ -1,19 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Loader;
+using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using DSharpPlus.PaginatedSelects;
 using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.Logging;
-
 
 namespace TestBot
 {
 	public static class Program
 	{
 		private static DiscordClient _client;
+		public static PaginatedSelect pselect;
 
 		private static async Task Main()
 		{
@@ -28,14 +30,14 @@ namespace TestBot
 			_client = new DiscordClient(new DiscordConfiguration
 			{
 				Token = token,
-				MinimumLogLevel = LogLevel.Trace
+				MinimumLogLevel = LogLevel.Warning
 			});
 
 			PaginatedSelectsExtension paginatedSelects = _client.UsePaginatedSelects(new PaginatedSelectsConfiguration() { });
 
 			SlashCommandsExtension slash = _client.UseSlashCommands();
 
-			slash.RegisterCommands<SlashCommands>(705114431721570366);
+			slash.RegisterCommands<SlashCommands>();
 
 			slash.SlashCommandErrored += (sender, args) =>
 			{
@@ -65,8 +67,29 @@ namespace TestBot
 				return Task.CompletedTask;
 			};
 
+			SetupSelect();
+
 			await _client.ConnectAsync();
 			await Task.Delay(-1);
+		}
+
+		private static void SetupSelect()
+		{
+			List<DiscordSelectComponentOption> options = new();
+			var prop = typeof(DiscordEmoji).GetProperty("UnicodeEmojis", BindingFlags.NonPublic | BindingFlags.Static);
+			if (prop == null) throw new ArgumentNullException(nameof(prop));
+			int i = 1;
+			var dict = (Dictionary<string, string>)prop.GetValue(null) ?? new();
+			foreach (KeyValuePair<string, string> kvp in dict)
+			{
+				options.Add(new DiscordSelectComponentOption(kvp.Key, kvp.Key.Replace(":", ""), $"emoji #{i}", false, new DiscordComponentEmoji(kvp.Value)));
+				i++;
+			}
+
+			Console.WriteLine("Paginated select loaded!");
+
+			var paginatedSelects = _client.GetPaginatedSelects();
+			paginatedSelects.AddPaginatedSelect("theSelect", new PaginatedSelect(options));
 		}
 	}
 }
