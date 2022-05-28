@@ -5,6 +5,7 @@ This extension adds paginated select components to DSharpPlus. (badly)
 ### How to use
 
 First, activate the extension on your discord client
+
 ```cs
 using DSharpPlus.PaginatedSelects;
 
@@ -14,6 +15,7 @@ var paginatedExtension = client.UsePaginatedSelects();
 __**Creating a paginated select**__
 
 1) Using AddPaginatedSelect
+
 ```cs
 PaginatedSelect paginated = new PaginatedSelect(/* List<DiscordSelectComponentOption> here */);
 // OR
@@ -27,6 +29,7 @@ DiscordSelectComponent firstPage = paginatedExtension.AddPaginatedSelect("mysele
 ```
 
 2) Using the extension methods on builders (`DiscordInteractionResponseBuilder`, `DiscordFollowupMessageBuilder`, `DiscordWebhookBuilder`)
+
 ```cs
 // For paginated selects that was already created:
 await ctx.EditResponseAsync(new DiscordWebhookBuilder()
@@ -46,7 +49,10 @@ await ctx.EditResponseAsync(new DiscordWebhookBuilder()
 // Note: you can also make a DiscordSelectComponent and supply it, the extension will call ToPaginatedSelect() on it.
 ```
 
+
+
 __**I want it gone after its used**__
+
 ```cs
 // For this paginated select:
 new PaginatedSelect()
@@ -61,8 +67,11 @@ new PaginatedSelectsConfiguration()
 };
 ```
 
+
+
 __**I want the other contents of the message changed after the page changes**__
-Sure!
+
+Sure! (do it yourself)
 ```cs
 new PaginatedSelect()
 {
@@ -80,6 +89,7 @@ This extension is highly configurable. You can set a default placeholder text fo
 and override them per-select. (`PaginatedSelect`)
 
 You can also change the next and previous page select options in the configuration.
+
 ```cs
 new PaginatedSelectsConfiguration()
 {
