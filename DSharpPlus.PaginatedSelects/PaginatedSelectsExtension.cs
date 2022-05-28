@@ -19,11 +19,16 @@ namespace DSharpPlus.PaginatedSelects
 		private PaginatedSelectsConfiguration _config;
 		private Dictionary<string, PaginatedSelect> _options;
 
+		public IReadOnlyDictionary<string, PaginatedSelect> PaginatedSelects => _options;
+
 		private int OptionsPerPage => PaginatedSelect.OptionsPerPage;
+
+		internal static PaginatedSelectsExtension _lastInstance;
 
 		public PaginatedSelectsExtension(PaginatedSelectsConfiguration? configuration = null)
 		{
 			_config = configuration ?? new PaginatedSelectsConfiguration();
+			_lastInstance = this;
 		}
 
 		protected override void Setup(DiscordClient client)
@@ -39,14 +44,97 @@ namespace DSharpPlus.PaginatedSelects
 			_client.ComponentInteractionCreated += OnComponent;
 		}
 
-		public List<DiscordSelectComponentOption> GetOptions(string customId, int page = 0)
+		#region Events
+
+		private Task OnComponent(object sender, ComponentInteractionCreateEventArgs e)
 		{
-			PaginatedSelect paginated = _options[customId];
+			// warning, shitcode. im really sorry. -dennis
+			_ = Task.Run(() =>
+			{
+				if (!_options.ContainsKey(e.Id)) return;
+
+				PaginatedSelect paginatedSelect = _options[e.Id];
+
+				if (!e.Values[0].StartsWith(_config.ValuePrefix))
+				{
+					if (_config.AutoRemoveSelects && paginatedSelect.AutoRemoveSelect != false)
+						_options.Remove(e.Id);
+					return;
+				}
+				// lazy method
+				string val = e.Values[0];
+				if (_config.ValuePrefix.Length > 0) val = val.Replace(_config.ValuePrefix, ""); //shitcode
+				bool isValid = int.TryParse(val, out int pageNum);
+				if (!isValid) return;
+
+				var renderedSelect = BuildSelect(e.Id, pageNum);
+
+				if (paginatedSelect.CustomRender != null)
+				{
+					paginatedSelect.CustomRender(new CustomRenderContext()
+					{
+						Id = e.Id,
+						PaginatedSelect = paginatedSelect,
+						Select = renderedSelect,
+						Interaction = e.Interaction,
+					});
+				}
+				else
+				{
+					e.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage,
+						new DiscordInteractionResponseBuilder()
+						.AddEmbeds(e.Message.Embeds)
+						.AddComponents(Utils.ReplaceComponent(e.Message.Components, e.Id, renderedSelect)));
+				}
+			});
+			return Task.CompletedTask;
+		}
+
+		#endregion
+
+		#region add/remove
+
+		/// <summary>
+		/// Adds the paginated select to the list of registered selects.
+		/// </summary>
+		/// <param name="customId"></param>
+		/// <param name="select"></param>
+		public DiscordSelectComponent AddPaginatedSelect(string customId, PaginatedSelect select)
+		{
+			if (select.Placeholder == null) select.Placeholder = _config.DefaultPlaceholder;
+			_options[customId] = select;
+			return BuildSelect(customId);
+		}
+
+		/// <summary>
+		/// Removes the paginated select from the list
+		/// </summary>
+		/// <param name="customId"></param>
+		public void RemovePaginatedSelect(string customId)
+			=> _options.Remove(customId);
+
+		#endregion
+
+		#region Components
+
+		public DiscordSelectComponent BuildSelect(string customId, int page = 0)
+		{
+			if (!_options.ContainsKey(customId)) throw new KeyNotFoundException($"Paginated select with custom id {customId} doesnt exist");
+			var paginatedSelect = _options[customId];
+
+			return new DiscordSelectComponent(
+				customId,
+				Format(paginatedSelect.Placeholder + _config.PlaceholderSuffix, page, paginatedSelect.PageCount),
+				BuildSelectOptions(paginatedSelect, page));
+		}
+
+		public List<DiscordSelectComponentOption> BuildSelectOptions(PaginatedSelect paginated, int page = 0)
+		{
 			if (paginated.Options.Count <= OptionsPerPage) return paginated.Options;
 
 			var options = paginated.Options.Skip(page * OptionsPerPage).Take(OptionsPerPage).ToList();
 
-			if(page + 1 != paginated.PageCount)
+			if (page + 1 != paginated.PageCount)
 			{
 				var opt = _config.NextPageOption;
 				opt = new DiscordSelectComponentOption(
@@ -79,84 +167,9 @@ namespace DSharpPlus.PaginatedSelects
 			}
 		}
 
-		public void AddPaginatedSelect(string customId, PaginatedSelect select)
-		{
-			if (select.Placeholder == null) select.Placeholder = _config.DefaultPlaceholder;
-			_options[customId] = select;
-		}
+		#endregion
 
-		private Task OnComponent(object sender, ComponentInteractionCreateEventArgs e)
-		{
-			// warning, shitcode. im really sorry. -dennis
-			_ = Task.Run(() =>
-			{
-				if (!_options.ContainsKey(e.Id)) return;
-
-				PaginatedSelect paginatedSelect = _options[e.Id];
-
-				if (!e.Values[0].StartsWith(_config.ValuePrefix))
-				{
-					if (_config.AutoRemoveSelects && paginatedSelect.AutoRemoveSelect != false)
-						_options.Remove(e.Id);
-					return;
-				}
-				// lazy method
-				string val = e.Values[0];
-				if (_config.ValuePrefix.Length > 0) val = val.Replace(_config.ValuePrefix, ""); //shitcode
-				bool isValid = int.TryParse(val, out int pageNum);
-				if (!isValid) return;
-
-				var renderedSelect = BuildSelect(e.Id, pageNum);
-				
-				if (paginatedSelect.CustomRender != null)
-				{
-					paginatedSelect.CustomRender(new CustomRenderContext()
-					{
-						Id = e.Id,
-						PaginatedSelect = paginatedSelect,
-						Select = renderedSelect,
-						Interaction = e.Interaction,
-					});
-				}
-				else
-				{
-					e.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage,
-						new DiscordInteractionResponseBuilder()
-						.AddEmbeds(e.Message.Embeds)
-						.AddComponents(Utils.ReplaceComponent(e.Message.Components, e.Id, renderedSelect)));
-				}
-			});
-			return Task.CompletedTask;
-		}
-
-		public DiscordSelectComponent CreateSelect(List<DiscordSelectComponentOption> options)
-			=> CreateSelect("_paginated_" + Guid.NewGuid().ToString(), options);
-		public DiscordSelectComponent CreateSelect(string customId, List<DiscordSelectComponentOption> options)
-			=> CreateSelect(customId, "", options);
-		public DiscordSelectComponent CreateSelect(string customId, string placeholder, List<DiscordSelectComponentOption> options)
-		{
-			var paginated = new PaginatedSelect()
-			{
-				Options = options,
-			};
-			if (placeholder.Length > 0) paginated.Placeholder = placeholder;
-			AddPaginatedSelect(customId, paginated);
-			return BuildSelect(customId);
-		}
-
-		public DiscordSelectComponent BuildSelect(string customId, int page = 0)
-		{
-			if (!_options.ContainsKey(customId)) throw new KeyNotFoundException($"Paginated select with custom id {customId} doesnt exist");
-			var paginatedSelect = _options[customId];
-
-			return new DiscordSelectComponent(customId, Format(paginatedSelect.Placeholder + _config.PlaceholderSuffix, page, paginatedSelect.PageCount), GetOptions(customId, page));
-		}
-
-		private static string Format(string input, int page, int pagecount)
-		{
-			return input.Replace("{page}", (page + 1).ToString())
-				.Replace("{pagecount}", pagecount.ToString());
-		}
+		#region Helpers
 
 		public static class Utils
 		{
@@ -174,6 +187,14 @@ namespace DSharpPlus.PaginatedSelects
 				}
 				return rows;
 			}
+		}
+
+		#endregion
+
+		private static string Format(string input, int page, int pagecount)
+		{
+			return input.Replace("{page}", (page + 1).ToString())
+				.Replace("{pagecount}", pagecount.ToString());
 		}
 	}
 }

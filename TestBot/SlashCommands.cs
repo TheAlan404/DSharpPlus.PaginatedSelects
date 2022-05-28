@@ -29,7 +29,7 @@ namespace TestBot
 					.WithAuthor($"{Program.pselect.Options.Count} emojis")
 					.WithDescription("These are all the emojis!")
 					.WithFooter("Taken from DSharpPlus.DiscordEmoji"))
-				.AddComponents(paginatedSelectsEx.BuildSelect("theSelect"))
+				.AddPaginatedSelect("theSelect")
 				.AddComponents(new DiscordButtonComponent(ButtonStyle.Success, "__", "Test Button", true),
 					new DiscordLinkButtonComponent("https://denvis.glitch.me/", "testetstetst")));
 		}

@@ -1,6 +1,6 @@
 # Paginated Selects
 
-This extension adds paginated select components to DSharpPlus.
+This extension adds paginated select components to DSharpPlus. (badly)
 
 ### How to use
 
@@ -11,31 +11,67 @@ using DSharpPlus.PaginatedSelects;
 var paginatedExtension = client.UsePaginatedSelects();
 ```
 
-__**A) Pre-registering a paginated select**__
+__**Creating a paginated select**__
 
-1. register it
+1) Using AddPaginatedSelect
 ```cs
-var paginatedSelect = new PaginatedSelect(new() {
-	new DiscordSelectComponentOption("Yes", "true"),
-	new DiscordSelectComponentOption("No", "false"),
-});
+PaginatedSelect paginated = new PaginatedSelect(/* List<DiscordSelectComponentOption> here */);
+// OR
+var normalSelect = new DiscordSelectComponent()
+{
+	// bla bla
+};
+var paginated = normalSelect.ToPaginatedSelect();
 
-paginatedExtension.AddPaginatedSelect("yesorno", paginatedSelect);
+DiscordSelectComponent firstPage = paginatedExtension.AddPaginatedSelect("myselect", paginated);
 ```
 
-2. use it
+2) Using the extension methods on builders (`DiscordInteractionResponseBuilder`, `DiscordFollowupMessageBuilder`, `DiscordWebhookBuilder`)
 ```cs
-var select = paginatedExtension.BuildSelect("yesorno");
+// For paginated selects that was already created:
+await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+				.WithContent("Hi! Where are you from?")
+				.AddPaginatedSelect("myselect"));
+
+// To create a new one:
+await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+				.WithContent("Hi! Where are you from?")
+				.AddPaginatedSelect("myselect", new PaginatedSelect(new(){
+					new("America", "us"),
+					new("France", "fr"),
+					new("Germany", "gb"),
+					new("Turkey", "shit"),
+					// ...
+				})));
+// Note: you can also make a DiscordSelectComponent and supply it, the extension will call ToPaginatedSelect() on it.
 ```
 
-__**B) Registering a dynamic paginated select**__
-aka register temperoraly
-
+__**I want it gone after its used**__
 ```cs
-var select = paginatedExtension.CreateSelect(new(){
-	new DiscordSelectComponentOption("Yes", "true"),
-	new DiscordSelectComponentOption("No", "false"),
-});
+// For this paginated select:
+new PaginatedSelect()
+{
+	AutoRemoveSelect = true,
+};
+
+// For all of the selects (that doesnt set PaginatedSelect#AutoRemoveSelect to false)
+new PaginatedSelectsConfiguration()
+{
+	AutoRemoveSelect = true,
+};
+```
+
+__**I want the other contents of the message changed after the page changes**__
+Sure!
+```cs
+new PaginatedSelect()
+{
+	CustomRender = (CustomRenderContext ctx) => {
+		ctx.Interaction.DoStuff();
+		// Note: you must supply the select component too
+		// You can use pre-made ctx.Select and PaginatedSelectsExtension.Utils.ReplaceComponent ;)
+	}
+};
 ```
 
 ### Want more?
@@ -44,8 +80,15 @@ This extension is highly configurable. You can set a default placeholder text fo
 and override them per-select. (`PaginatedSelect`)
 
 You can also change the next and previous page select options in the configuration.
+```cs
+new PaginatedSelectsConfiguration()
+{
+	NextPageOption = new("NEXTTTT!!", "_", "next page uwu"),
+	PreviousPageOption = new("fuck go back", "_", "oh god did i go too far"),
+};
+```
 
-Pull requests and issues are welcome as f-
+Pull requests and issues are welcome (please)
 
 ### Formatting
 
