@@ -28,7 +28,6 @@ namespace DSharpPlus.PaginatedSelects
 		public PaginatedSelectsExtension(PaginatedSelectsConfiguration? configuration = null)
 		{
 			_config = configuration ?? new PaginatedSelectsConfiguration();
-			_lastInstance = this;
 		}
 
 		protected override void Setup(DiscordClient client)
@@ -38,6 +37,7 @@ namespace DSharpPlus.PaginatedSelects
 
 			_client = client;
 			_config = new PaginatedSelectsConfiguration();
+			_lastInstance = this;
 
 			_options = new();
 

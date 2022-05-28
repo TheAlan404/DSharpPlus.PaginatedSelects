@@ -19,8 +19,6 @@ namespace TestBot
 			await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource,
 				new DiscordInteractionResponseBuilder().AsEphemeral());
 
-			var paginatedSelectsEx = ctx.Client.GetPaginatedSelects();
-
 			await ctx.EditResponseAsync(new DiscordWebhookBuilder()
 				.WithContent("This is the content!")
 				.AddEmbed(new DiscordEmbedBuilder()

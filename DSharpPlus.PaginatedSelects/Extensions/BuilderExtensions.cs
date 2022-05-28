@@ -9,6 +9,22 @@ namespace DSharpPlus.PaginatedSelects
 {
 	public static class BuilderExtensions
 	{
+		internal static DiscordSelectComponent GetSelect(string customId, PaginatedSelect paginated)
+		{
+			if (PaginatedSelectsExtension._lastInstance == null) throw new NullReferenceException("Couldn't find the PaginatedSelectsExtension");
+			var select = PaginatedSelectsExtension._lastInstance.AddPaginatedSelect(customId, paginated);
+			if (select == null) throw new NullReferenceException("PaginatedSelectsExtension gave null");
+			return select;
+		}
+
+		internal static DiscordSelectComponent GetSelect(string customId)
+		{
+			if (PaginatedSelectsExtension._lastInstance == null) throw new NullReferenceException("Couldn't find the PaginatedSelectsExtension");
+			var select = PaginatedSelectsExtension._lastInstance.BuildSelect(customId);
+			if (select == null) throw new NullReferenceException("PaginatedSelectsExtension gave null");
+			return select;
+		}
+
 		#region DiscordInteractionResponseBuilder
 
 		/// <summary>
@@ -31,10 +47,7 @@ namespace DSharpPlus.PaginatedSelects
 		/// <returns></returns>
 		public static DiscordInteractionResponseBuilder AddPaginatedSelect(this DiscordInteractionResponseBuilder builder,
 			string customId, PaginatedSelect paginated)
-		{
-			var select = PaginatedSelectsExtension._lastInstance.AddPaginatedSelect(customId, paginated);
-			return builder.AddComponents(select);
-		}
+			=> builder.AddComponents(GetSelect(customId, paginated));
 
 		/// <summary>
 		/// Add a pre-created paginated select
@@ -44,10 +57,7 @@ namespace DSharpPlus.PaginatedSelects
 		/// <returns></returns>
 		public static DiscordInteractionResponseBuilder AddPaginatedSelect(this DiscordInteractionResponseBuilder builder,
 			string customId)
-		{
-			var select = PaginatedSelectsExtension._lastInstance.BuildSelect(customId);
-			return builder.AddComponents(select);
-		}
+			=> builder.AddComponents(GetSelect(customId));
 
 		#endregion
 
@@ -73,10 +83,7 @@ namespace DSharpPlus.PaginatedSelects
 		/// <returns></returns>
 		public static DiscordFollowupMessageBuilder AddPaginatedSelect(this DiscordFollowupMessageBuilder builder,
 			string customId, PaginatedSelect paginated)
-		{
-			var select = PaginatedSelectsExtension._lastInstance.AddPaginatedSelect(customId, paginated);
-			return builder.AddComponents(select);
-		}
+			=> builder.AddComponents(GetSelect(customId, paginated));
 
 		/// <summary>
 		/// Add a pre-created paginated select
@@ -86,10 +93,7 @@ namespace DSharpPlus.PaginatedSelects
 		/// <returns></returns>
 		public static DiscordFollowupMessageBuilder AddPaginatedSelect(this DiscordFollowupMessageBuilder builder,
 			string customId)
-		{
-			var select = PaginatedSelectsExtension._lastInstance.BuildSelect(customId);
-			return builder.AddComponents(select);
-		}
+			=> builder.AddComponents(GetSelect(customId));
 
 		#endregion
 
@@ -115,10 +119,7 @@ namespace DSharpPlus.PaginatedSelects
 		/// <returns></returns>
 		public static DiscordWebhookBuilder AddPaginatedSelect(this DiscordWebhookBuilder builder,
 			string customId, PaginatedSelect paginated)
-		{
-			var select = PaginatedSelectsExtension._lastInstance.AddPaginatedSelect(customId, paginated);
-			return builder.AddComponents(select);
-		}
+			=> builder.AddComponents(GetSelect(customId, paginated));
 
 		/// <summary>
 		/// Add a pre-created paginated select
@@ -128,10 +129,7 @@ namespace DSharpPlus.PaginatedSelects
 		/// <returns></returns>
 		public static DiscordWebhookBuilder AddPaginatedSelect(this DiscordWebhookBuilder builder,
 			string customId)
-		{
-			var select = PaginatedSelectsExtension._lastInstance.BuildSelect(customId);
-			return builder.AddComponents(select);
-		}
+			=> builder.AddComponents(GetSelect(customId));
 
 		#endregion
 	}

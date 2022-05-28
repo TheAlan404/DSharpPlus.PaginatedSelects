@@ -30,14 +30,14 @@ namespace TestBot
 			_client = new DiscordClient(new DiscordConfiguration
 			{
 				Token = token,
-				MinimumLogLevel = LogLevel.Warning
+				MinimumLogLevel = LogLevel.Trace
 			});
 
 			PaginatedSelectsExtension paginatedSelects = _client.UsePaginatedSelects(new PaginatedSelectsConfiguration() { });
 
 			SlashCommandsExtension slash = _client.UseSlashCommands();
 
-			slash.RegisterCommands<SlashCommands>();
+			slash.RegisterCommands<SlashCommands>(705114431721570366);
 
 			slash.SlashCommandErrored += (sender, args) =>
 			{
@@ -88,8 +88,10 @@ namespace TestBot
 
 			Console.WriteLine("Paginated select loaded!");
 
+			pselect = new PaginatedSelect(options);
+
 			var paginatedSelects = _client.GetPaginatedSelects();
-			paginatedSelects.AddPaginatedSelect("theSelect", new PaginatedSelect(options));
+			paginatedSelects.AddPaginatedSelect("theSelect", pselect);
 		}
 	}
 }
